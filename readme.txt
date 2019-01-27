@@ -1,10 +1,12 @@
-Very useful tutorial doing exactly what I want:
+
+Nano:
 
 https://www.element14.com/community/community/raspberry-pi/blog/2012/12/14/nfc-on-raspberrypi-with-pn532-py532lib-and-i2c
-
-
 https://github.com/HubCityLabs/py532lib
 
+** 1) I have it working on an arduino nano (RFIDpi.ino) using PN532-PN532_HSU
+
+Dev PI:
 
 https://blog.stigok.com/2017/10/12/setting-up-a-pn532-nfc-module-on-a-raspberry-pi-using-i2c.html
 These instructions 
@@ -33,3 +35,7 @@ ImportError: nfc not found.
 Fix:
 if you're in RPi, code to find libnfc is buggy. For a quick workaround change line 477 of nfc.py to:
 for dir in open('/etc/ld.so.conf.d/arm-linux-gnueabihf.conf')
+
+
+** 2) Using nfc-poll, I'm accessing libNFC and can scan for a card (then it exits)
+** 3) Using mifareauth.py with modified (nfc.py) I can read UID, but I don't understand the code at all
