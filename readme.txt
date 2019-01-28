@@ -39,3 +39,8 @@ for dir in open('/etc/ld.so.conf.d/arm-linux-gnueabihf.conf')
 
 ** 2) Using nfc-poll, I'm accessing libNFC and can scan for a card (then it exits)
 ** 3) Using mifareauth.py with modified (nfc.py) I can read UID, but I don't understand the code at all
+
+
+Link for volumio RFID project:
+
+https://volumio.org/forum/rfid-card-reader-t11357.html
