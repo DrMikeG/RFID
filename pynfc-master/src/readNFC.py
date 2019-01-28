@@ -73,19 +73,24 @@ class NFCReader(object):
             raise IOError("NFC Error whilst polling")
         elif res >= 1:
             uid = None
+            print nt.nti.nai.szUidLen
             if nt.nti.nai.szUidLen == 4:
                 uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(4)])
+            if nt.nti.nai.szUidLen == 7:
+                uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(7)])
             if uid:
-                if not ((self._card_uid and self._card_present and uid == self._card_uid) and \
-                                    time.mktime(time.gmtime()) <= self._card_last_seen + self.card_timeout):
-                    self._setup_device()
-                    self.read_card(uid)
+                print "Reading card", uid.encode("hex")        
+#if not ((self._card_uid and self._card_present and uid == self._card_uid) and \
+ #                                   time.mktime(time.gmtime()) <= self._card_last_seen + self.card_timeout):
+  #                  self._setup_device()
+   #                 self.read_card(uid)
             self._card_uid = uid
             self._card_present = True
             self._card_last_seen = time.mktime(time.gmtime())
         else:
             self._card_present = False
             self._clean_card()
+
 
     def _clean_card(self):
         self._card_uid = None
@@ -101,7 +106,7 @@ class NFCReader(object):
         return uid
 
     def _setup_device(self):
-        """Sets all the NFC device settings for reading from Mifare cards"""
+        #Sets all the NFC device settings for reading from Mifare cards
         if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_ACTIVATE_CRYPTO1, True) < 0:
             raise Exception("Error setting Crypto1 enabled")
         if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_INFINITE_SELECT, False) < 0:
@@ -112,10 +117,10 @@ class NFCReader(object):
             raise Exception("Error setting Easy Framing property")
 
     def _read_block(self, block):
-        """Reads a block from a Mifare Card after authentication
+        #Reads a block from a Mifare Card after authentication
 
-           Returns the data read or raises an exception
-        """
+        #Returns the data read or raises an exception
+
         if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_EASY_FRAMING, True) < 0:
             raise Exception("Error setting Easy Framing property")
         abttx = (ctypes.c_uint8 * 2)()
