@@ -21,7 +21,6 @@ class NFCReader(object):
         self._card_present = False
         self._card_last_seen = None
         self._card_uid = None
-        self._clean_card()
 
         mods = [(nfc.NMT_ISO14443A, nfc.NBR_106)]
 
@@ -36,7 +35,7 @@ class NFCReader(object):
         nfc.nfc_init(ctypes.byref(self.__context))
         loop = True
         try:
-            self._clean_card()
+            self._card_uid = None
             conn_strings = (nfc.nfc_connstring * 10)()
             devices_found = nfc.nfc_list_devices(self.__context, conn_strings, 10)
             if devices_found >= 1:
@@ -85,37 +84,8 @@ class NFCReader(object):
             self._card_last_seen = time.mktime(time.gmtime())
         else:
             self._card_present = False
-            self._clean_card()
+            self._card_uid = None
 
-
-    def _clean_card(self):
-        self._card_uid = None
-
-    def _setup_device(self):
-        #Sets all the NFC device settings for reading from Mifare cards
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_ACTIVATE_CRYPTO1, True) < 0:
-            raise Exception("Error setting Crypto1 enabled")
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_INFINITE_SELECT, False) < 0:
-            raise Exception("Error setting Single Select option")
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_AUTO_ISO14443_4, False) < 0:
-            raise Exception("Error setting No Auto ISO14443-A jiggery pokery")
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_HANDLE_PARITY, True) < 0:
-            raise Exception("Error setting Easy Framing property")
-
-    def _authenticate(self, block, uid, key = "\xff\xff\xff\xff\xff\xff", use_b_key = False):
-        """Authenticates to a particular block using a specified key"""
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_EASY_FRAMING, True) < 0:
-            raise Exception("Error setting Easy Framing property")
-        abttx = (ctypes.c_uint8 * 12)()
-        abttx[0] = self.MC_AUTH_A if not use_b_key else self.MC_AUTH_B
-        abttx[1] = block
-        for i in range(6):
-            abttx[i + 2] = ord(key[i])
-        for i in range(4):
-            abttx[i + 8] = ord(uid[i])
-        abtrx = (ctypes.c_uint8 * 250)()
-        return nfc.nfc_initiator_transceive_bytes(self.__device, ctypes.pointer(abttx), len(abttx),
-                                                  ctypes.pointer(abtrx), len(abtrx), 0)
 
 
 if __name__ == '__main__':
