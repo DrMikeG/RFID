@@ -1,0 +1,60 @@
+#!/usr/bin/env python2.7
+# script by Alex Eames http://RasPi.tv
+# http://RasPi.tv/how-to-use-interrupts-with-python-on-the-raspberry-pi-and-rpi-gpio-part-3
+
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+import time
+import os
+import subprocess
+import datetime
+import random
+import sys
+
+# members for GPIO
+GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+album_search_string_list = ['My Universe','Sounds of the 80', 'Same Trailer Different Park', 'Keep Calm', 'This House Is Not For Sale', 'Jupiter Calling','Platinum Collection','All Their Greatest Hits','Swing','100 Rock','Hand Built By Robots']
+
+
+def button_callback(channel):
+    global album_search_string_list
+    print "Button Pressed"
+    sys.stdout.flush()
+    stream = subprocess.Popen("mpc current", shell=True,stdout=subprocess.PIPE).stdout.read()
+    if not stream:
+        print("Not Playing")
+        #print("Picking random choice from %u albums", len( album_search_string_list ) )
+        sys.stdout.flush()
+        # Pick a random index into the string array above...
+        random_index = random.randrange(0, len( album_search_string_list ))
+        random_album = album_search_string_list[random_index]
+        print("Playing random album", random_album )
+        sys.stdout.flush()
+        print subprocess.Popen("mpc clear; mpc search album \"%s\" | mpc add; mpc play" %random_album, shell=True, stdout=subprocess.PIPE).stdout.read()
+        sys.stdout.flush()
+    else:
+        print "Stopping Playing %s" % stream
+        print subprocess.Popen("mpc stop", shell=True, stdout=subprocess.PIPE).stdout.read()
+        print "Stopped"
+        sys.stdout.flush()
+
+#def my_callback2(channel):
+#    print "falling edge detected on 23"
+
+GPIO.add_event_detect(18, GPIO.FALLING, callback=button_callback, bouncetime=800)
+
+try:
+    print "Listening for stomps..."
+    sys.stdout.flush()
+    GPIO.wait_for_edge(24, GPIO.RISING)
+    print "Rising edge detected on port 24. Here endeth the third lesson."
+
+except KeyboardInterrupt:
+    print "Done"
+    sys.stdout.flush()
+    GPIO.cleanup()       # clean up GPIO on CTRL+C exit
+GPIO.cleanup()           # clean up GPIO on normal exit
+sys.stdout.flush()
+
