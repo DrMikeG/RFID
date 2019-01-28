@@ -80,10 +80,6 @@ class NFCReader(object):
                 uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(7)])
             if uid:
                 print "Reading card", uid.encode("hex")        
-#if not ((self._card_uid and self._card_present and uid == self._card_uid) and \
- #                                   time.mktime(time.gmtime()) <= self._card_last_seen + self.card_timeout):
-  #                  self._setup_device()
-   #                 self.read_card(uid)
             self._card_uid = uid
             self._card_present = True
             self._card_last_seen = time.mktime(time.gmtime())
@@ -95,16 +91,6 @@ class NFCReader(object):
     def _clean_card(self):
         self._card_uid = None
 
-    def select_card(self):
-        """Selects a card after a failed authentication attempt (aborted communications)
-
-           Returns the UID of the card selected
-        """
-        nt = nfc.nfc_target()
-        _ = nfc.nfc_initiator_select_passive_target(self.__device, self.__modulations[0], None, 0, ctypes.byref(nt))
-        uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(nt.nti.nai.szUidLen)])
-        return uid
-
     def _setup_device(self):
         #Sets all the NFC device settings for reading from Mifare cards
         if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_ACTIVATE_CRYPTO1, True) < 0:
@@ -115,23 +101,6 @@ class NFCReader(object):
             raise Exception("Error setting No Auto ISO14443-A jiggery pokery")
         if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_HANDLE_PARITY, True) < 0:
             raise Exception("Error setting Easy Framing property")
-
-    def _read_block(self, block):
-        #Reads a block from a Mifare Card after authentication
-
-        #Returns the data read or raises an exception
-
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_EASY_FRAMING, True) < 0:
-            raise Exception("Error setting Easy Framing property")
-        abttx = (ctypes.c_uint8 * 2)()
-        abttx[0] = self.MC_READ
-        abttx[1] = block
-        abtrx = (ctypes.c_uint8 * 250)()
-        res = nfc.nfc_initiator_transceive_bytes(self.__device, ctypes.pointer(abttx), len(abttx),
-                                                 ctypes.pointer(abtrx), len(abtrx), 0)
-        if res < 0:
-            raise IOError("Error reading data")
-        return "".join([chr(abtrx[i]) for i in range(res)])
 
     def _authenticate(self, block, uid, key = "\xff\xff\xff\xff\xff\xff", use_b_key = False):
         """Authenticates to a particular block using a specified key"""
@@ -148,28 +117,6 @@ class NFCReader(object):
         return nfc.nfc_initiator_transceive_bytes(self.__device, ctypes.pointer(abttx), len(abttx),
                                                   ctypes.pointer(abtrx), len(abtrx), 0)
 
-    def auth_and_read(self, block, uid, key = "\xff\xff\xff\xff\xff\xff"):
-        """Authenticates and then reads a block
-
-           Returns '' if the authentication failed
-        """
-        # Reselect the card so that we can reauthenticate
-        self.select_card()
-        res = self._authenticate(block, uid, key)
-        if res >= 0:
-            return self._read_block(block)
-        return ''
-
-    def read_card(self, uid):
-        """Takes a uid, reads the card and return data for use in writing the card"""
-        key = "\xff\xff\xff\xff\xff\xff"
-        print "Reading card", uid.encode("hex")
-        self._card_uid = self.select_card()
-        self._authenticate(0x00, uid, key)
-        block = 0
-        for block in range(64):
-            data = self.auth_and_read(block, uid, key)
-            print block, data.encode("hex"), "".join([ x if x in string.printable else "." for x in data])
 
 if __name__ == '__main__':
     logger = logging.getLogger("cardhandler").info
