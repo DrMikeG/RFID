@@ -1,31 +1,9 @@
-"""Test for a simple Mifare NFC Authentication"""
-
-#  Pynfc is a python wrapper for the libnfc library
-#  Copyright (C) 2009  Mike Auty
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 import time
 import logging
 import ctypes
 import string
 import nfc
 
-def hex_dump(string):
-    """Dumps data as hexstrings"""
-    return ' '.join(["%0.2X" % ord(x) for x in string])
 
 ### NFC device setup
 class NFCReader(object):
@@ -84,16 +62,6 @@ class NFCReader(object):
             nfc.nfc_exit(self.__context)
             self.log("NFC Clean shutdown called")
         return loop
-
-    @staticmethod
-    def _sanitize(bytesin):
-        """Returns guaranteed ascii text from the input bytes"""
-        return "".join([x if 0x7f > ord(x) > 0x1f else '.' for x in bytesin])
-
-    @staticmethod
-    def _hashsanitize(bytesin):
-        """Returns guaranteed hexadecimal digits from the input bytes"""
-        return "".join([x if x.lower() in 'abcdef0123456789' else '' for x in bytesin])
 
     def _poll_loop(self):
         """Starts a loop that constantly polls for cards"""
@@ -160,24 +128,6 @@ class NFCReader(object):
             raise IOError("Error reading data")
         return "".join([chr(abtrx[i]) for i in range(res)])
 
-    def __write_block(self, block, data):
-        """Writes a block of data to a Mifare Card after authentication
-
-           Raises an exception on error
-        """
-        if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_EASY_FRAMING, True) < 0:
-            raise Exception("Error setting Easy Framing property")
-        if len(data) > 16:
-            raise ValueError("Data value to be written cannot be more than 16 characters.")
-        abttx = (ctypes.c_uint8 * 18)()
-        abttx[0] = self.MC_WRITE
-        abttx[1] = block
-        abtrx = (ctypes.c_uint8 * 250)()
-        for i in range(16):
-            abttx[i + 2] = ord((data + "\x00" * (16 - len(data)))[i])
-        return nfc.nfc_initiator_transceive_bytes(self.__device, ctypes.pointer(abttx), len(abttx),
-                                                  ctypes.pointer(abtrx), len(abtrx), 0)
-
     def _authenticate(self, block, uid, key = "\xff\xff\xff\xff\xff\xff", use_b_key = False):
         """Authenticates to a particular block using a specified key"""
         if nfc.nfc_device_set_property_bool(self.__device, nfc.NP_EASY_FRAMING, True) < 0:
@@ -205,16 +155,6 @@ class NFCReader(object):
             return self._read_block(block)
         return ''
 
-    def auth_and_write(self, block, uid, data, key = "\xff\xff\xff\xff\xff\xff"):
-        """Authenticates and then writes a block
-
-        """
-        res = self._authenticate(block, uid, key)
-        if res >= 0:
-            return self.__write_block(block, data)
-        self.select_card()
-        return ""
-
     def read_card(self, uid):
         """Takes a uid, reads the card and return data for use in writing the card"""
         key = "\xff\xff\xff\xff\xff\xff"
@@ -225,10 +165,6 @@ class NFCReader(object):
         for block in range(64):
             data = self.auth_and_read(block, uid, key)
             print block, data.encode("hex"), "".join([ x if x in string.printable else "." for x in data])
-
-    def write_card(self, uid, data):
-        """Accepts data of the recently read card with UID uid, and writes any changes necessary to it"""
-        raise NotImplementedError
 
 if __name__ == '__main__':
     logger = logging.getLogger("cardhandler").info

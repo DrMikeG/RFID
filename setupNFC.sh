@@ -4,6 +4,7 @@
 #Nano controls
 #Cut line ctrl-k
 #Paste line ctrl-u
+#ctrl-c to see line number
 
 #The following packages have unmet dependencies:
 # apt-utils : Depends: apt (= 1.4.8) but 1.4.9 is installed
