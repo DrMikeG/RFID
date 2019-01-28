@@ -1,4 +1,12 @@
 git clone https://github.com/DrMikeG/RFID.git
 
+git config --global user.email "github@michaelgibbens.co.uk"
+git config --global user.name "DrMikeG"
+
 git status
 
+git add ./setupNFC.sh ./gitPrimer.txt
+
+git commit -m "First version off setup script"
+
+git push
