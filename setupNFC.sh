@@ -34,5 +34,3 @@ sudo echo "device.connstring = \"pn532_i2c:/dev/i2c-1\"" >> /etc/nfc/libnfc.conf
 sudo nfc-scan-device -v
 
 # use nfc-poll to test setup
-
-
