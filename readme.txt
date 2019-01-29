@@ -44,3 +44,5 @@ for dir in open('/etc/ld.so.conf.d/arm-linux-gnueabihf.conf')
 Link for volumio RFID project:
 
 https://volumio.org/forum/rfid-card-reader-t11357.html
+
+https://volumio.org/forum/websockets-playplaylist-python-script-input-t9808.html
