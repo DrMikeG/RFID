@@ -17,7 +17,7 @@ sudo ifconfig wlan0 mtu 500 up
 sudo apt install i2c-tools
 
 #check the information for the next step
-i2cdetect -y 1
+sudo i2cdetect -y 1
 
 read -p "Press [Enter] key to configiure i2c-1 device"
 
@@ -31,7 +31,7 @@ sudo chmod 777 /etc/nfc/libnfc.conf
 sudo echo "device.name = \"PN532 over I2C\"" > /etc/nfc/libnfc.conf
 sudo echo "device.connstring = \"pn532_i2c:/dev/i2c-1\"" >> /etc/nfc/libnfc.conf
 
-nfc-scan-device -v
+sudo nfc-scan-device -v
 
 # use nfc-poll to test setup
 
