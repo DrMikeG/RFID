@@ -1,0 +1,9 @@
+Number of arguments: 2 arguments.
+Argument List: ['/home/volumio/RFID/pynfc-master/src/pollForAction.py', './music.kwargs']
+run Action main function
+Number of arguments: 2 arguments.
+Argument List: ['/home/volumio/RFID/pynfc-master/src/pollForAction.py', '/home/volumio/RFID/pynfc-master/src/music.kwargs']
+Parsing config  /home/volumio/RFID/pynfc-master/src/music.kwargs
+run Action main function
+Received card uid 045881b2355e81
+Known action artists://Meghan%20Trainor

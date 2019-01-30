@@ -84,6 +84,8 @@ class PollForAction:
     	socketIO = SocketIO('localhost', 3000, LoggingNamespace)
     	socketIO.emit('replaceAndPlay', {"uri":action})
 
+stdout_ = sys.stdout
+sys.stdout = open("/home/volumio/RFID/pynfc-master/src/pollForAction.log", 'a', buffering=0)
 
 print 'Number of arguments:', len(sys.argv), 'arguments.'
 print 'Argument List:', str(sys.argv)
