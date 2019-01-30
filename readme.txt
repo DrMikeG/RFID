@@ -46,3 +46,14 @@ Link for volumio RFID project:
 https://volumio.org/forum/rfid-card-reader-t11357.html
 
 https://volumio.org/forum/websockets-playplaylist-python-script-input-t9808.html
+
+Clean install of volumio
+
+Had to enable ssh with /dev
+
+Pulled my git repo to access setup script
+
+To use python socketIO I had to install PIP in order to pull the package.
+(See if I can get the history of these commands)
+
+No issues setting up the card read a least
