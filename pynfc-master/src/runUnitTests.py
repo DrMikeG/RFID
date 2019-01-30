@@ -24,11 +24,11 @@ class TestStringMethods(unittest.TestCase):
         pfa = PollForAction(1)
     
     def test_canTellIfAFileIsExists(self):
-	self.assertTrue(None == PollForAction().argIsValidFile(None)) # NONE returns NONE 
-        self.assertTrue(None == PollForAction().argIsValidFile("empty"))
-        self.assertTrue(None == PollForAction().argIsValidFile(1))
-        self.assertTrue(None == PollForAction().argIsValidFile([1,1]))
-        self.assertTrue("./runUnitTests.py" == PollForAction().argIsValidFile("./runUnitTests.py"))
+	self.assertTrue(None == PollForAction()._argIsValidFile(None)) # NONE returns NONE 
+        self.assertTrue(None == PollForAction()._argIsValidFile("empty"))
+        self.assertTrue(None == PollForAction()._argIsValidFile(1))
+        self.assertTrue(None == PollForAction()._argIsValidFile([1,1]))
+        self.assertTrue("./runUnitTests.py" == PollForAction()._argIsValidFile("./runUnitTests.py"))
 
     def test_countDefaultOptions(self):
         self.assertTrue(0 == PollForAction().getOptionsCount())

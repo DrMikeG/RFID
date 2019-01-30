@@ -29,7 +29,7 @@ class NFCReader(object):
             self.__modulations[i].nmt = mods[i][0]
             self.__modulations[i].nbr = mods[i][1]
 
-    def run(self):
+    def run(self,cb_handle):
         """Starts the looping thread"""
         self.__context = ctypes.pointer(nfc.nfc_context())
         nfc.nfc_init(ctypes.byref(self.__context))
@@ -43,7 +43,7 @@ class NFCReader(object):
                 try:
                     _ = nfc.nfc_initiator_init(self.__device)
                     while True:
-                        self._poll_loop()
+                        self._poll_loop(cb_handle)
                 finally:
                     nfc.nfc_close(self.__device)
             else:
@@ -62,7 +62,7 @@ class NFCReader(object):
             self.log("NFC Clean shutdown called")
         return loop
 
-    def _poll_loop(self):
+    def _poll_loop(self,cb_handle):
         """Starts a loop that constantly polls for cards"""
         nt = nfc.nfc_target()
         res = nfc.nfc_initiator_poll_target(self.__device, self.__modulations, len(self.__modulations), 10, 2,
@@ -72,13 +72,14 @@ class NFCReader(object):
             raise IOError("NFC Error whilst polling")
         elif res >= 1:
             uid = None
-            print nt.nti.nai.szUidLen
+            #print nt.nti.nai.szUidLen
             if nt.nti.nai.szUidLen == 4:
                 uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(4)])
             if nt.nti.nai.szUidLen == 7:
                 uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(7)])
             if uid:
-                print "Reading card", uid.encode("hex")        
+                #print "Reading card", uid.encode("hex")
+                cb_handle(uid)        
             self._card_uid = uid
             self._card_present = True
             self._card_last_seen = time.mktime(time.gmtime())
@@ -86,9 +87,13 @@ class NFCReader(object):
             self._card_present = False
             self._card_uid = None
 
+def _handleUID(uid):
+	if uid:
+		print "Reading card", uid.encode("hex")
+
 
 
 if __name__ == '__main__':
     logger = logging.getLogger("cardhandler").info
-    while NFCReader(logger).run():
+    while NFCReader(logger).run(_handleUID):
         pass
