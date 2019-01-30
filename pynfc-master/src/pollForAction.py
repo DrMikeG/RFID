@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+import time
 from readNFC import NFCReader
 from socketIO_client import SocketIO, LoggingNamespace
 
@@ -55,6 +56,8 @@ class PollForAction:
 
     def runActionLoopForever(self):
        print("run Action main function")
+       time.sleep(60)
+       print("pause over - attempting card reading")
        logger = logging.getLogger("cardhandler").info
        while NFCReader(logger).run(self._handleCardReadUIDCallback):
            pass
@@ -85,7 +88,7 @@ class PollForAction:
     	socketIO.emit('replaceAndPlay', {"uri":action})
 
 stdout_ = sys.stdout
-sys.stdout = open("/home/volumio/RFID/pynfc-master/src/pollForAction.log", 'a', buffering=0)
+sys.stdout = open("/home/volumio/poll.log", 'a', buffering=0)
 
 print 'Number of arguments:', len(sys.argv), 'arguments.'
 print 'Argument List:', str(sys.argv)
