@@ -17,7 +17,7 @@ class NFCReader(object):
         self.__context = None
         self.__device = None
         self.log = logger
-
+	self.log.info("Logging enabled in NFCReader")
         self._card_present = False
         self._card_last_seen = None
         self._card_uid = None
@@ -30,7 +30,8 @@ class NFCReader(object):
             self.__modulations[i].nbr = mods[i][1]
 
     def run(self,cb_handle):
-        """Starts the looping thread"""
+        #Starts the looping thread
+	self.log.info("NFC restart and poll until error")
         self.__context = ctypes.pointer(nfc.nfc_context())
         nfc.nfc_init(ctypes.byref(self.__context))
         loop = True
@@ -43,28 +44,32 @@ class NFCReader(object):
                 try:
                     _ = nfc.nfc_initiator_init(self.__device)
                     while True:
+ 			self.log.debug("polling loop...")
                         self._poll_loop(cb_handle)
                 finally:
+                    self.log.debug("closing in finally")
                     nfc.nfc_close(self.__device)
             else:
-                self.log("NFC Waiting for device.")
+                self.log.info("NFC Waiting for device.")
                 time.sleep(5)
         except (KeyboardInterrupt, SystemExit):
             loop = False
         except IOError, e:
-            self.log("Exception: " + str(e))
+            #if not str(e).startswith("NFC Error whilst polling"):
+	    self.log.info("Exception: " + str(e))
             loop = True  # not str(e).startswith("NFC Error whilst polling")
         # except Exception, e:
         # loop = True
         #    print "[!]", str(e)
         finally:
             nfc.nfc_exit(self.__context)
-            self.log("NFC Clean shutdown called")
+            self.log.info("NFC Clean shutdown called")
         return loop
 
     def _poll_loop(self,cb_handle):
-        """Starts a loop that constantly polls for cards"""
-        nt = nfc.nfc_target()
+        #Starts a loop that constantly polls for cards
+        self.log.debug("_poll_loop")
+	nt = nfc.nfc_target()
         res = nfc.nfc_initiator_poll_target(self.__device, self.__modulations, len(self.__modulations), 10, 2,
                                             ctypes.byref(nt))
         # print "RES", res
@@ -79,6 +84,7 @@ class NFCReader(object):
                 uid = "".join([chr(nt.nti.nai.abtUid[i]) for i in range(7)])
             if uid:
                 #print "Reading card", uid.encode("hex")
+                #self.log.info("Read uid %s",uid)
                 cb_handle(uid)        
             self._card_uid = uid
             self._card_present = True

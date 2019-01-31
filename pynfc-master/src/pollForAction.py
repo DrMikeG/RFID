@@ -6,6 +6,7 @@ import logging
 import time
 from readNFC import NFCReader
 from socketIO_client import SocketIO, LoggingNamespace
+from logging.handlers import RotatingFileHandler
 
 class FileParser:
     COMMENT_CHAR = '#'
@@ -34,11 +35,19 @@ class FileParser:
 
 class PollForAction:
 
-    def __init__(self,args):
+    def __init__(self,args,logger):
         self.data = []
         self._options = []
+        self.logger = logger
+        self.logger.info("Starting pollForAction.py")
+        self.logger.info("Number of arguments %s", len(sys.argv) )
+        self.logger.info("Argument List: %s", str(sys.argv) )
+      
         if len(args) == 2:
-      		self.configureFromFile(args[1])
+            self.configureFromFile(args[1])
+	else:
+	    self.logger.error("No config file specified")
+
 
     def lookupActionFromOptions(self, data):
        if data in self._options.keys():
@@ -47,20 +56,29 @@ class PollForAction:
            return None
 
     def configureFromFile(self, data):
+       self.logger.info("configure")
        if (self._argIsValidFile(data) != None):
-         print "Parsing config ",data 
+         self.logger.info("Parsing config %s", data) 
+         self._optionsReloadFile = data
          self._options = FileParser().parse_config(data)
+         self.logger.info("Found %i",self.getOptionsCount())
 
     def getOptionsCount(self):
        return len(self._options)
 
     def runActionLoopForever(self):
-       print("run Action main function")
+       self.logger.info("run ActionLoopForever")
+       self.logger.info("pausing for 60 seconds")
        time.sleep(60)
-       print("pause over - attempting card reading")
-       logger = logging.getLogger("cardhandler").info
-       while NFCReader(logger).run(self._handleCardReadUIDCallback):
-           pass
+       self.logger.info("pause over - attempting card reading")
+
+       restartCount = 0;
+       while NFCReader(self.logger).run(self._handleCardReadUIDCallback):
+		restartCount+=1
+		if restartCount == 10:
+			restartCount = 0
+			self.configureFromFile(self._optionsReloadFile)
+	#pass #The pass statement does nothing. It can be used when a statement is required syntactically but the program requires no action
 
 
     def _argIsValidFile(self,data):
@@ -75,22 +93,51 @@ class PollForAction:
     def _handleCardReadUIDCallback(self,uid):
 	if uid :
                 uidStr = uid.encode("hex")
-        	print "Received card uid", uidStr
+        	self.logger.info("Received card uid %s", uidStr)
         action = self.lookupActionFromOptions(uidStr)
         if action != None :
-		print "Known action", action
+		self.logger.info("Known action %s", action)
                 self.dispatchActionToSocket(action)
         else:
-                print "Unknown action"
+                self.logger.info("Unknown action")
 
     def dispatchActionToSocket(self,action):
     	socketIO = SocketIO('localhost', 3000, LoggingNamespace)
     	socketIO.emit('replaceAndPlay', {"uri":action})
 
-stdout_ = sys.stdout
-sys.stdout = open("/home/volumio/poll.log", 'a', buffering=0)
+ 
+def createRotatingLog():
+	# create logger
+	logger = logging.getLogger('simple_example')
+	logger.setLevel(logging.INFO)
 
-print 'Number of arguments:', len(sys.argv), 'arguments.'
-print 'Argument List:', str(sys.argv)
+        log_file = '/home/volumio/poll.log'
+        rh = RotatingFileHandler(log_file, maxBytes=2*1024*1024,backupCount=5) # allow 6 * 2MB logfiles
+	rh.setLevel(logging.INFO)
+
+	# create console handler and set level to debug
+	ch = logging.StreamHandler()
+	ch.setLevel(logging.INFO)
+	
+	# create formatter
+	formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+	# add formatter to ch
+	ch.setFormatter(formatter)
+	rh.setFormatter(formatter)
+
+	# add ch to logger
+	logger.addHandler(ch)
+	logger.addHandler(rh)
+        #formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        # add a rotating handler
+        #handler.setFormatter(formatter)
+
+        #logger = logging.getLogger("Rotating Log")
+        #logger.addHandler(handler)
+        logger.info('The local time is %s', time.asctime())
+        return logger
+
 if __name__ == '__main__':
-    PollForAction(sys.argv).runActionLoopForever()
+    logger = createRotatingLog()
+    PollForAction(sys.argv,logger).runActionLoopForever()
