@@ -103,7 +103,11 @@ class PollForAction:
 
     def dispatchActionToSocket(self,action):
     	socketIO = SocketIO('localhost', 3000, LoggingNamespace)
-    	socketIO.emit('replaceAndPlay', {"uri":action})
+    	if str(action).startswith("STOP"):
+		self.logger.info("Issuing stop command")
+		socketIO.emit('stop',{}); 
+	else:
+		socketIO.emit('replaceAndPlay', {"uri":action})
 
  
 def createRotatingLog():
@@ -129,12 +133,7 @@ def createRotatingLog():
 	# add ch to logger
 	logger.addHandler(ch)
 	logger.addHandler(rh)
-        #formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        # add a rotating handler
-        #handler.setFormatter(formatter)
 
-        #logger = logging.getLogger("Rotating Log")
-        #logger.addHandler(handler)
         logger.info('The local time is %s', time.asctime())
         return logger
 
