@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 import time
+import subprocess
 from readNFC import NFCReader
 from socketIO_client import SocketIO, LoggingNamespace
 from logging.handlers import RotatingFileHandler
@@ -91,6 +92,7 @@ class PollForAction:
            return None
     
     def _handleCardReadUIDCallback(self,uid):
+        self.goPop()
 	if uid :
                 uidStr = uid.encode("hex")
         	self.logger.info("Received card uid %s", uidStr)
@@ -109,6 +111,8 @@ class PollForAction:
 	else:
 		socketIO.emit('replaceAndPlay', {"uri":action})
 
+    def goPop(self):
+        subprocess.call(['aplay -fdat /home/volumio/RFID/pop/pop1.wav'], shell=True)
  
 def createRotatingLog():
 	# create logger
