@@ -109,6 +109,7 @@ class PollForAction:
 		self.logger.info("Issuing stop command")
 		socketIO.emit('stop',{}); 
 	else:
+		self.logger.info("replace and play %s",action)
 		socketIO.emit('replaceAndPlay', {"uri":action})
 
     def goPop(self):

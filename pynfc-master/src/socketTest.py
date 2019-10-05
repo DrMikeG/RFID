@@ -38,7 +38,8 @@ def search():
 
 def replaceAndPlay():
     print 'replace and play'
-    #socketIO.emit('replaceAndPlay', {"uri":"music-library/USB/Lexar/music/Mike Gibbens/Mike's Album/For You (Tracy Chapman).m4a"})
+    socketIO.emit('replaceAndPlay', {"uri":"music-library/USB/Lexar_/music/Various Artists/Sing Your Heart Out 2016"})    
+#socketIO.emit('replaceAndPlay', {"uri":"music-library/USB/Lexar/music/Mike Gibbens/Mike's Album/For You (Tracy Chapman).m4a"})
     #socketIO.emit('replaceAndPlay', {"uri":"albums://Various%20artists/The%20Lion%20King%3A%20Special%20Edition%20Original%20Soundtrack%20(English%20Version)"})
     #socketIO.emit('replaceAndPlay', {"uri":"artists://Meghan%20Trainor"})
     #socketIO.emit('replaceAndPlay', {"uri":"albums:///My%20Universe"})
